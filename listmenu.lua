@@ -649,15 +649,6 @@ function ListMenuItem:update()
                         table.insert(wright_items, 1, wpagesleftinfo)
                     end
                 end
-                if progress_str ~= "" then
-                    local wprogressinfo = TextWidget:new {
-                        text = progress_str,
-                        face = wright_font_face,
-                        fgcolor = fgcolor,
-                        padding = 0,
-                    }
-                    table.insert(wright_items, 1, wprogressinfo)
-                end
             else
                 local wfileinfo = TextWidget:new {
                     text = fileinfo_str,
@@ -828,21 +819,10 @@ function ListMenuItem:update()
 
                 if show_tags then
                     local avail_height = math.max(0, dimen.h - (wtitle and wtitle:getSize().h or 0))
-                    local formatted_tags = ptutil.formatTags(bookinfo.keywords)
+                    local formatted_tags = ptutil.formatTags(bookinfo.keywords, 3)
                     if formatted_tags then
                         -- Use font size slightly smaller than authors
                         local fontsize_tags = math.max(10, fontsize_authors - 3)
-                        -- build both multiline and single line, one or neither will be used as fits
-                        local wtags_multiline = TextBoxWidget:new {
-                            text = formatted_tags,
-                            face = Font:getFace(fontname_tags, fontsize_tags),
-                            width = safe_width,
-                            height = avail_height,
-                            height_adjust = true,
-                            height_overflow_show_ellipsis = true,
-                            alignment = "left",
-                            fgcolor = wmetadata_fgcolor,
-                        }
                         local wtags_monoline = TextWidget:new {
                             text = formatted_tags,
                             lang = bookinfo.language,
@@ -853,22 +833,14 @@ function ListMenuItem:update()
                             alignment = "left",
                             fgcolor = wmetadata_fgcolor,
                         }
-                        if (wauthors:getSize().h + wtags_multiline:getSize().h) <= avail_height then
-                            table.insert(vgroup_items, wtags_multiline)
-                            wtags_monoline:free(true)
-                            wtags_monoline = nil
-                        elseif (wauthors:getSize().h + wtags_monoline:getSize().h) <= avail_height then
+                        if (wauthors:getSize().h + wtags_monoline:getSize().h) <= avail_height then
                             table.insert(vgroup_items, HorizontalGroup:new {
                                 wtags_monoline,
                                 HorizontalSpan:new { width = (safe_width - wtags_monoline:getSize().w)}
                             })
-                            wtags_multiline:free(true)
-                            wtags_multiline = nil
                         else
                             wtags_monoline:free(true)
                             wtags_monoline = nil
-                            wtags_multiline:free(true)
-                            wtags_multiline = nil
                         end
                     end
                 end

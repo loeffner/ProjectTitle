@@ -54,15 +54,8 @@ end
 --]]
 local safe_version = 202508000000
 local cv_int, cv_commit = Version:getNormalizedCurrentVersion()
-local version_unsafe = true
-if (cv_int == safe_version or util.fileExists(data_dir .. "/settings/pt-skipversioncheck.txt")) then
-    version_unsafe = false
-else
-    logger.warn(ptdbg.logprefix, "Version not safe", tostring(cv_int))
-    if safe_version - cv_int < 1000 then
-        logger.warn(ptdbg.logprefix, "This is a KOReader nightly build, not the official release")
-    end
-end
+local version_unsafe = false
+
 
 -- If any required files are missing, or if KOReader version is wrong, load an empty plugin
 -- and display an error message to the user.
@@ -269,6 +262,7 @@ function CoverBrowser:init()
     if BookInfoManager:getSetting("config_version") == 4 then
         logger.info(ptdbg.logprefix, "Migrating settings to version 5")
         BookInfoManager:saveSetting("show_tags", false)
+        BookInfoManager:saveSetting("folder_cover_cache_enabled", false)
         BookInfoManager:saveSetting("config_version", "5")
     end
 
@@ -522,6 +516,32 @@ function CoverBrowser:addToMainMenu(menu_items)
                         callback = function()
                             BookInfoManager:toggleSetting("disable_auto_foldercovers")
                             fc:updateItems()
+                        end,
+                    },
+                    {
+                        text = _("Cache generated folder covers to disk"),
+                        enabled_func = function()
+                            return not BookInfoManager:getSetting("disable_auto_foldercovers")
+                        end,
+                        checked_func = function()
+                            return BookInfoManager:getSetting("folder_cover_cache_enabled")
+                        end,
+                        callback = function()
+                            BookInfoManager:toggleSetting("folder_cover_cache_enabled")
+                        end,
+                        hold_callback = function()
+                            local ptutil = require("ptutil")
+                            local InfoMessage = require("ui/widget/infomessage")
+                            local UIManager = require("ui/uimanager")
+                            -- Clean up in background
+                            local function cleanup()
+                                ptutil.cleanupFolderCoverCache()
+                                UIManager:show(InfoMessage:new{
+                                    text = _("Cached folder covers deleted."),
+                                    timeout = 2,
+                                })
+                            end
+                            UIManager:tickAfterNext(cleanup)
                         end,
                     },
                     {

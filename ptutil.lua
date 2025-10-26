@@ -439,23 +439,119 @@ local function build_grid(images, max_w, max_h)
     return layout
 end
 
-function ptutil.getSubfolderCoverImages(filepath, max_w, max_h)
-    local db_res = query_cover_paths(filepath, false)
-    local images = build_cover_images(db_res, max_w, max_h)
+-- Save a widget to a PNG file
+local function save_widget_as_png(widget, filepath)
+    logger.info(ptdbg.logprefix, "Attempting to save folder cover to:", filepath)
+    local success, result = pcall(function()
+        local bb = widget:getSize()
+        logger.dbg(ptdbg.logprefix, "Widget size:", bb.w, "x", bb.h)
+        local image_bb = Blitbuffer.new(bb.w, bb.h, Blitbuffer.TYPE_BBRGB32)
+        -- Fill with white background first
+        image_bb:fill(Blitbuffer.COLOR_WHITE)
+        widget:paintTo(image_bb, 0, 0)
 
-    if #images < 4 then
-        db_res = query_cover_paths(filepath, true)
-        images = build_cover_images(db_res, max_w, max_h)
+        -- Write PNG using blitbuffer's writePNG method
+        local write_success = image_bb:writePNG(filepath)
+        image_bb:free()
+
+        if write_success then
+            logger.info(ptdbg.logprefix, "Successfully saved folder cover to:", filepath)
+            return true
+        else
+            logger.warn(ptdbg.logprefix, "Failed to write PNG file:", filepath)
+            return false
+        end
+    end)
+
+    if not success then
+        logger.err(ptdbg.logprefix, "Error saving folder cover:", result)
+        return false
     end
+    return result
+end
+
+function ptutil.getSubfolderCoverImages(filepath, max_w, max_h)
+    local layout_type = BookInfoManager:getSetting("use_stacked_foldercovers") and "stack" or "grid"
+    local cover_filename = filepath .. "/.folder_cover_" .. layout_type .. ".png"
+
+    -- Check if saved folder cover exists (only if caching is enabled)
+    if BookInfoManager:getSetting("folder_cover_cache_enabled") and util.fileExists(cover_filename) then
+        local success, folder_image = pcall(function()
+            local temp_image = ImageWidget:new { file = cover_filename, scale_factor = 1 }
+            temp_image:_render()
+            local orig_w = temp_image:getOriginalWidth()
+            local orig_h = temp_image:getOriginalHeight()
+            temp_image:free()
+            local scale_to_fill = 0
+            if orig_w and orig_h then
+                local scale_x = max_w / orig_w
+                local scale_y = max_h / orig_h
+                scale_to_fill = math.max(scale_x, scale_y)
+            end
+            return ImageWidget:new {
+                file = cover_filename,
+                width = max_w,
+                height = max_h,
+                scale_factor = scale_to_fill,
+                center_x_ratio = 0.5,
+                center_y_ratio = 0.5,
+            }
+        end)
+        if success and folder_image then
+            return FrameContainer:new {
+                width = max_w,
+                height = max_h,
+                margin = 0,
+                padding = 0,
+                bordersize = 0,
+                folder_image
+            }
+        end
+    end
+
+    -- Query database
+    local db_res
+    db_res = query_cover_paths(filepath, false)
+
+    -- If we don't have enough, try including subfolders
+    if not db_res or not db_res[1] or #db_res[2] < 4 then
+        db_res = query_cover_paths(filepath, true)
+    end
+
+    -- Build images from query results
+    local images = build_cover_images(db_res, max_w, max_h)
 
     -- Return nil if no images found
     if #images == 0 then return nil end
 
-    if BookInfoManager:getSetting("use_stacked_foldercovers") then
-        return build_diagonal_stack(images, max_w, max_h)
+    local result
+    if layout_type == "stack" then
+        result = build_diagonal_stack(images, max_w, max_h)
     else
-        return build_grid(images, max_w, max_h)
+        result = build_grid(images, max_w, max_h)
     end
+
+    -- Save the generated cover to disk for future use
+    if result and BookInfoManager:getSetting("folder_cover_cache_enabled") then
+        logger.info(ptdbg.logprefix, "Saving generated folder cover for:", filepath)
+        -- Save in background to avoid blocking UI
+        local function save_cover()
+            save_widget_as_png(result, cover_filename)
+        end
+        -- Try to save, but don't worry if it fails (e.g., read-only filesystem)
+        local save_success, save_err = pcall(save_cover)
+        if not save_success then
+            logger.warn(ptdbg.logprefix, "Failed to save folder cover:", save_err)
+        end
+    else
+        if not result then
+            logger.dbg(ptdbg.logprefix, "No result to save for:", filepath)
+        else
+            logger.dbg(ptdbg.logprefix, "Folder cover caching disabled")
+        end
+    end
+
+    return result
 end
 
 function ptutil.line(width, color, thickness)
@@ -550,6 +646,35 @@ function ptutil.formatTags(keywords, tags_limit)
         s = s .. "…"
     end
     return s
+end
+
+function ptutil.cleanupFolderCoverCache()
+    -- Delete all cached folder cover PNG files recursively in the file browser's current directory tree
+    local lfs = require("libs/libkoreader-lfs")
+    local function cleanup_recursive(path)
+        for entry in lfs.dir(path) do
+            if entry ~= "." and entry ~= ".." then
+                local full_path = path .. "/" .. entry
+                local mode = lfs.attributes(full_path, "mode")
+                if mode == "directory" then
+                    cleanup_recursive(full_path)
+                elseif mode == "file" and (entry == ".folder_cover_stack.png" or entry == ".folder_cover_grid.png") then
+                    logger.info(ptdbg.logprefix, "Deleting cached folder cover:", full_path)
+                    os.remove(full_path)
+                end
+            end
+        end
+    end
+
+    -- Start from file browser root paths
+    local FileManager = require("apps/filemanager/filemanager")
+    if FileManager.instance then
+        local path = FileManager.instance.root_path or FileManager.instance.path
+        if path and lfs.attributes(path, "mode") == "directory" then
+            logger.info(ptdbg.logprefix, "Cleaning up folder cover cache in:", path)
+            cleanup_recursive(path)
+        end
+    end
 end
 
 return ptutil
