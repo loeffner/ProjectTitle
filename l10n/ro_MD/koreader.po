@@ -21,7 +21,7 @@ msgstr "Carte"
 
 # main.lua
 msgid "Project: Title"
-msgstr "Proiect: Titlu"
+msgstr "Project: Title"
 
 msgid "Decrease Items Per Page"
 msgstr "Micșorează elementele pe pagină"
@@ -30,28 +30,28 @@ msgid "Increase Items Per Page"
 msgstr "Mărește elementele pe pagină"
 
 msgid "Cover List"
-msgstr "Listă coperte"
+msgstr "Coperte afișate ca Listă"
 
 msgid "Cover Grid"
-msgstr "Grilă coperte"
+msgstr "Coperte afișate ca Grilă"
 
 msgid "Details List"
-msgstr "Listă detalii"
+msgstr "Coperte afișate ca Listă cu detalii"
 
 msgid "Filenames List"
-msgstr "Listă nume fișiere"
+msgstr "Coperte afișate ca Listă cu nume fișiere"
 
 msgid "Project: Title settings"
-msgstr "Proiect: Setări Titlu"
+msgstr "Setări Project: Title"
 
 msgid "Portrait cover grid mode"
-msgstr "Mod grilă coperte portret"
+msgstr "Mod Portret, grilă de coperte"
 
 msgid "Landscape cover grid mode"
-msgstr "Mod grilă coperte peisaj"
+msgstr "Mod Peisaj, grilă coperte"
 
 msgid "List modes"
-msgstr "Moduri listă"
+msgstr "Mod Listă"
 
 msgid "Folder display"
 msgstr "Afișare dosare"
@@ -60,7 +60,7 @@ msgid "Auto-generate cover images from books"
 msgstr "Generează automat imagini de copertă din cărți"
 
 msgid "Show auto-generated cover images as a stack"
-msgstr "Afișează coperți generate automat ca stivă"
+msgstr "Afișează ca stivă coperțile generate automat"
 
 msgid "Overlay name and details in cover grid"
 msgstr "Suprapune nume și detalii în grila de coperte"
@@ -69,7 +69,7 @@ msgid "Book display"
 msgstr "Afișare cărți"
 
 msgid "Show series"
-msgstr "Afișează serii"
+msgstr "Afișează seriile"
 
 msgid "Show pages read instead of progress %"
 msgstr "Afișează pagini citite în loc de progres în %"
@@ -81,22 +81,22 @@ msgid "Show progress % instead of progress bars"
 msgstr "Afișează progresul în % în loc de bare de progres"
 
 msgid "Always show maximum length progress bars"
-msgstr "Afișează întotdeauna bare de progres la lungime maximă"
+msgstr "Afișează mereu bare de progres la lungime maximă"
 
 msgid "Show calibre tags/keywords"
-msgstr "Afișează etichete/cuvinte-cheie calibre"
+msgstr "Afișează etichete/cuvinte-cheie din Calibre"
 
 msgid "Use custom book status screen"
 msgstr "Folosește ecran personalizat pentru starea cărții"
 
 msgid "Footer"
-msgstr "Footer"
+msgstr "Subsolul paginii"
 
 msgid "Replace folder name with device info"
-msgstr "Înlocuiește numele dosarului cu informațiile dispozitivului"
+msgstr "Înlocuiește numele dosarului cu info a dispozitivului"
 
 msgid "Show page controls in left corner"
-msgstr "Afișează controale pagină în colțul stâng"
+msgstr "Afișează controalele paginii în colțul stâng"
 
 msgid "Library mode"
 msgstr "Mod bibliotecă"
@@ -120,7 +120,7 @@ msgid "Cache emptied."
 msgstr "Cache golit."
 
 msgid "Show last item indicator on touchscreen devices"
-msgstr "Afișează indicator ultim element pe dispozitive touchscreen"
+msgstr "Arată Indicator ultim-element pe dispozitive touchscreen"
 
 # bookinfomanager.lua
 msgid ""
