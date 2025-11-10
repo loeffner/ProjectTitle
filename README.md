@@ -16,7 +16,7 @@ Project: Title is a plugin made by two people who love KOreader but wanted to ex
 
 * **A Matching Book Status Page**: The default book status page (available as a screensaver) have been updated to show the book's description and your current progress, as well as having its design updated to match the new book listings. A setting is available to restore the original one, if desired. 
 
-* **Endless Customization through User Patches**: We made this plugin to be what we want it to be, and so we can't implement everyone's feature requests or suggestions. However, we have tried to make it very easy to modify through what KOReader calls "user patches". There are already many available and if you want to learn a little Lua you can even make your own. 
+* **Endless Customization through User Patches**: We made this plugin to be what we want it to be so we can't implement everyone's feature requests or suggestions. However, we have tried to make it very easy to modify through what KOReader calls "user patches". There are already many available and if you want to learn a little Lua you can even make your own. 
 
 * **A Few Nice Extras**: Autoscan for new books on USB eject, make list and grid items larger or smaller with gestures (pinch/spread), a trophy icon to mark finished books, and displaying the tags/keywords for books in list mode.
 
@@ -52,7 +52,7 @@ Project: Title is a plugin made by two people who love KOreader but wanted to ex
 
 **To uninstall:**
 
-To disable Project: Title open the plugins menu and re-enable Cover Browser then restart your device. You could also delete the projecttitle.koplugin folder from your device. You can then delete the additional fonts and icons, check the install steps for a reminder on where you placed them.
+To disable Project: Title open the plugins menu, enable Cover Browser, then restart your device. You can then delete the projecttitle.koplugin folder from your device.
 
 ## Credits
 All code here started life as the Cover Browser plugin, written by @poire-z and other members of the KOReader team. The additional changes made here were done by @joshuacant and @elfbutt and all [contributors](../../graphs/contributors)
