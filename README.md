@@ -50,9 +50,11 @@ Project: Title is a plugin made by two people who love KOreader but wanted to ex
 [Calibre Page Counts Wiki Page](../../wiki/Configure-Calibre-Page-Counts)
 
 
-**To uninstall:**
+**Easy Uninstall:**
 
-To disable Project: Title open the plugins menu, enable Cover Browser, then restart your device. You can then delete the projecttitle.koplugin folder from your device.
+To disable: Open the plugins menu, enable Cover Browser, then restart your device.
+
+To completely remove: Delete the projecttitle.koplugin folder from `koreader/plugins/`. Delete the `koreader/fonts/source/` folder to remove the additional fonts, and the `koreader/icons/` folder to remove the additional icons.
 
 ## Credits
 All code here started life as the Cover Browser plugin, written by @poire-z and other members of the KOReader team. The additional changes made here were done by @joshuacant and @elfbutt and all [contributors](../../graphs/contributors)
