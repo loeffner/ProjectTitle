@@ -20,6 +20,7 @@ local DataStorage = require("datastorage")
 local SQ3 = require("lua-ljsqlite3/init")
 local ffiUtil = require("ffi/util")
 local util = require("util")
+local lfs = require("libs/libkoreader-lfs")
 local _ = require("l10n.gettext")
 local ptdbg = require("ptdbg")
 local BookInfoManager = require("bookinfomanager")
@@ -209,48 +210,19 @@ function ptutil.installIcons()
 end
 
 local function findCover(dir_path)
-    local COVER_CANDIDATES = { "cover", "folder", ".cover", ".folder" }
-    local COVER_EXTENSIONS = { ".jpg", ".jpeg", ".png", ".webp", ".gif" }
     if not dir_path or dir_path == "" or dir_path == ".." or dir_path:match("%.%.$") then
         return nil
     end
+
     dir_path = dir_path:gsub("[/\\]+$", "")
-    -- Try exact matches with lowercase and uppercase extensions
-    for _, candidate in ipairs(COVER_CANDIDATES) do
-        for _, ext in ipairs(COVER_EXTENSIONS) do
-            local exact_path = dir_path .. "/" .. candidate .. ext
-            local f = io.open(exact_path, "rb")
-            if f then
-                f:close()
-                return exact_path
-            end
-            local upper_path = dir_path .. "/" .. candidate .. ext:upper()
-            if upper_path ~= exact_path then
-                f = io.open(upper_path, "rb")
-                if f then
-                    f:close()
-                    return upper_path
-                end
+    local fn_lc
+    for fn in lfs.dir(dir_path) do
+        fn_lc = fn:lower()
+        if fn_lc:match('^%.?cover%.') or fn_lc:match('^%.?folder%.') then
+            if fn_lc:match('%.jpe?g$') or fn_lc:match('%.png$') or fn_lc:match('%.webp$') or fn_lc:match('%.gif$') then
+                return dir_path .. "/" .. fn
             end
         end
-    end
-    -- Fallback: scan directory for case-insensitive matches
-    local success, handle = pcall(io.popen, 'ls -1 "' .. dir_path .. '" 2>/dev/null')
-    if success and handle then
-        for file in handle:lines() do
-            if file and file ~= "." and file ~= ".." and file ~= "" then
-                local file_lower = file:lower()
-                for _, candidate in ipairs(COVER_CANDIDATES) do
-                    for _, ext in ipairs(COVER_EXTENSIONS) do
-                        if file_lower == candidate .. ext then
-                            handle:close()
-                            return dir_path .. "/" .. file
-                        end
-                    end
-                end
-            end
-        end
-        handle:close()
     end
     return nil
 end
