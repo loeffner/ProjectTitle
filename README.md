@@ -29,8 +29,9 @@ Project: Title is a plugin made by two people who love KOreader but wanted to ex
 * Readers who like browsing for their next book and being able to see how long a book is before starting it.
 
 ## Who this (probably) is not for:
-* KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames then KOReader already does this extremely well! However, a "filenames only" display mode is included as of version 2025.08v3.5, if you want to use the other aspects of the plugin but stick to a simple listing of files.
-* KOReader users who are completely happy with Cover Browser. The changes we've made are 90% style based, and if you don't see anything here that you like, then stick with what you know and like!
+* KOReader users who prefer a barebones UI. If you are happy picking your next read from a list of filenames then KOReader already does this extremely well! (A "filenames only" display mode is included if you want to use the other parts of the plugin but retain a plain list.)
+* KOReader users who prize speed above all else. Pretty has a price and while it depends on your device and features you pick, Project: Title may be slower than sticking to a plain list or Cover Browser. A 4x4 grid with folder thumbnails enabled on an older Kindle will definitely see some longer page turns, but you'll just have to try it to see if it bothers you. 
+* KOReader users who are completely happy with Cover Browser. Most of what we've done here is just a new coat of paint, so if you don't like the color then that's a good reason to give Project: Title a pass.
 
 ## Installation
 [Step-by-Step Install Guide](../../wiki/Installation)
