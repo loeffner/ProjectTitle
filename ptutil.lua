@@ -87,6 +87,11 @@ ptutil.grid_defaults = {
     default_rows = 3,
 }
 
+ptutil.footer_defaults = {
+    font_size = 20,
+    font_size_deviceinfo = 18,
+}
+
 ptutil.title_serif = "source/SourceSerif4-BoldIt.ttf"
 ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
 ptutil.good_serif_it = "source/SourceSerif4-It.ttf"

@@ -647,10 +647,10 @@ function CoverMenu:menuInit()
         h = self.page_info:getSize().h,
     }
     local footer_font_face = ptutil.good_serif
-    local footer_font_size = 20
+    local footer_font_size = ptutil.footer_defaults.font_size
     if BookInfoManager:getSetting("replace_footer_text") then
         footer_font_face = ptutil.good_sans
-        footer_font_size = 18
+        footer_font_size = ptutil.footer_defaults.font_size_deviceinfo
     end
     if not BookInfoManager:getSetting("reverse_footer") then
         self.cur_folder_text = TextWidget:new {
