@@ -426,7 +426,7 @@ function CoverMenu:setupLayout()
 
     function file_chooser:onFileHold(item)
         if file_manager.selected_files then
-            file_manager:tapPlus()
+            file_manager:onShowPlusMenu()
         else
             self:showFileDialog(item)
         end
