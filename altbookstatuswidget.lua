@@ -5,6 +5,7 @@ local Device = require("device")
 local FileManagerBookInfo = require("apps/filemanager/filemanagerbookinfo")
 local Font = require("ui/font")
 local Geom = require("ui/geometry")
+local FrameContainer = require("ui/widget/container/framecontainer")
 local HorizontalGroup = require("ui/widget/horizontalgroup")
 local HorizontalSpan = require("ui/widget/horizontalspan")
 local ImageWidget = require("ui/widget/imagewidget")
@@ -37,11 +38,12 @@ function AltBookStatusWidget:getStatusContent(width)
         close_callback = not self.readonly and function() self:onClose() end,
         show_parent = self,
     }
+    local read_percentage = self.ui:getCurrentPage() / self.total_pages
     local content = VerticalGroup:new {
         align = "left",
         title_bar,
         self:genBookInfoGroup(),
-        self:genHeader(_("Progress")),
+        self:genHeader(_("Progress") .. ": " .. string.format("%1.f%%", read_percentage * 100)),
         self:genStatisticsGroup(width),
         self:genHeader(_("Description")),
         self:genSummaryGroup(width),
@@ -54,7 +56,7 @@ function AltBookStatusWidget:genHeader(title)
 
     local header_title = TextWidget:new {
         text = title,
-        face = self.header_font,
+        face = Font:getFace(ptutil.good_sans, ptutil.bookstatus_defaults.header_font_size),
         fgcolor = Blitbuffer.COLOR_GRAY_9,
     }
 
@@ -97,14 +99,9 @@ end
 
 function AltBookStatusWidget:genBookInfoGroup()
     -- override the original fonts with our included fonts
-    self.small_font_face = Font:getFace(ptutil.good_serif, 18)
-    self.medium_font_face = Font:getFace(ptutil.good_serif, 22)
-    self.large_font_face = Font:getFace(ptutil.good_serif, 30)
-
-    -- and set up our own as well
-    self.header_font = Font:getFace(ptutil.good_sans, 24)
-    self.small_serif_font = Font:getFace(ptutil.good_serif, 18)
-    self.large_serif_font = Font:getFace(ptutil.title_serif, 30)
+    self.small_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.small_font_size)
+    self.medium_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.medium_font_face)
+    self.large_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.large_font_face)
 
     -- padding to match the width used in cover list and grid
     self.padding = Screen:scaleBySize(10)
@@ -132,7 +129,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     -- author(s) text
     local authors = ""
     if props.authors then
-        authors = ptutil.formatAuthors(props.authors, 3)
+        authors = ptutil.formatAuthors(props.authors, 2)
     end
 
     -- series name and position (if available, if requested)
@@ -147,16 +144,17 @@ function AltBookStatusWidget:genBookInfoGroup()
         series = ""
     end
 
-    local author_series = ptutil.formatAuthorSeries(authors, series, series_mode, false)
+    -- combine author and series
+    local author_series_text = ptutil.formatAuthorSeries(authors, series, series_mode, false)
 
     -- author(s) and series combined box
-    local bookinfo = TextBoxWidget:new {
-        text = author_series,
+    local author_series = TextBoxWidget:new {
+        text = author_series_text,
         lang = lang,
-        face = self.small_serif_font,
+        face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.small_serif_size),
         width = width,
         alignment = "center",
-        fgcolor = Blitbuffer.COLOR_GRAY_2
+        fgcolor = Blitbuffer.COLOR_GRAY_2,
     }
 
     -- progress bar
@@ -173,41 +171,62 @@ function AltBookStatusWidget:genBookInfoGroup()
         fillcolor = Blitbuffer.COLOR_GRAY_6,
     }
 
-    -- progress text
-    local read_text = _("Reading")
-    local progress_text = TextWidget:new {
-        text = read_text .. " - " .. T(_("%1%"),string.format("%1.f", read_percentage * 100)),
-        face = self.small_serif_font,
+    -- current chapter title, if available
+    local book_chapter = self.ui.toc:getTocTitleByPage(self.ui:getCurrentPage()) or ""
+    local chapter_title = TextWidget:new {
+        text = book_chapter,
+        lang = lang,
+        face = Font:getFace(ptutil.good_serif_it, ptutil.bookstatus_defaults.small_serif_size),
+        width = width,
+        alignment = "center",
+        fgcolor = Blitbuffer.COLOR_BLACK,
     }
 
     -- title box (done last to calculate the max available height)
-    local max_title_height = height - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h -
-        Size.padding.default
-    local booktitle = TextBoxWidget:new {
+    local max_title_height = height - author_series:getSize().h - progress_bar:getSize().h - chapter_title:getSize().h - Size.padding.default
+    local book_title = TextBoxWidget:new {
         text = props.display_title,
         lang = lang,
         width = width,
         height = max_title_height,
         height_adjust = true,
         height_overflow_show_ellipsis = true,
-        face = self.large_serif_font,
+        face = Font:getFace(ptutil.title_serif, ptutil.bookstatus_defaults.large_serif_size),
         alignment = "center",
     }
 
     -- padding
-    local meta_padding_height = math.max(Size.padding.default,
-        height - booktitle:getSize().h - bookinfo:getSize().h - progress_bar:getSize().h - progress_text:getSize().h)
+    local meta_padding_height = math.max(Size.padding.default, height - book_title:getSize().h - author_series:getSize().h - progress_bar:getSize().h - chapter_title:getSize().h)
     local meta_padding = VerticalSpan:new { width = meta_padding_height }
+
+    -- horizontal dividing line
+    local book_meta_line = LineWidget:new {
+        background = Blitbuffer.COLOR_LIGHT_GRAY,
+        dimen = Geom:new {
+            w = width * 0.2,
+            h = Size.line.thick,
+        }
+    }
 
     -- build metadata column (adjacent to cover)
     local book_meta_info_group = VerticalGroup:new {
         align = "center",
     }
-    table.insert(book_meta_info_group, booktitle)
+    table.insert(book_meta_info_group, book_title)
+    table.insert(book_meta_info_group, book_meta_line)
+    if book_chapter ~= "" then
+        table.insert(book_meta_info_group,
+            CenterContainer:new {
+                dimen = Geom:new { w = width, h = chapter_title:getSize().h },
+                chapter_title
+            }
+        )
+        table.insert(book_meta_info_group, book_meta_line)
+    end
     table.insert(book_meta_info_group,
         CenterContainer:new {
-            dimen = Geom:new { w = width, h = bookinfo:getSize().h },
-            bookinfo
+            dimen = Geom:new { w = width, h = author_series:getSize().h },
+            author_series
         }
     )
     table.insert(book_meta_info_group, meta_padding)
@@ -215,12 +234,6 @@ function AltBookStatusWidget:genBookInfoGroup()
         CenterContainer:new {
             dimen = Geom:new { w = width, h = progress_bar:getSize().h },
             progress_bar
-        }
-    )
-    table.insert(book_meta_info_group,
-        CenterContainer:new {
-            dimen = Geom:new { w = width, h = progress_text:getSize().h },
-            progress_text
         }
     )
 
@@ -240,11 +253,29 @@ function AltBookStatusWidget:genBookInfoGroup()
             cbb_h = math.min(math.floor(cbb_h * scale_factor) + 1, img_height)
             thumbnail = RenderImage:scaleBlitBuffer(thumbnail, cbb_w, cbb_h, true)
         end
-
-        table.insert(book_info_group, ImageWidget:new {
+        local border_total = Size.border.thin * 2
+        local dimen = Geom:new {
+            w = cbb_w + border_total,
+            h = cbb_h + border_total,
+        }
+        local image = ImageWidget:new {
             image = thumbnail,
             width = cbb_w,
             height = cbb_h,
+        }
+        table.insert(book_info_group, CenterContainer:new {
+            dimen = dimen,
+            FrameContainer:new {
+                width = dimen.w,
+                height = dimen.h,
+                margin = 0,
+                padding = 0,
+                radius = Size.radius.default,
+                bordersize = Size.border.thin,
+                dim = self.file_deleted,
+                color = Blitbuffer.COLOR_GRAY_3,
+                image,
+            }
         })
     end
     -- metadata column
