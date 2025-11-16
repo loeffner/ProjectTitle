@@ -231,6 +231,8 @@ local function findCover(dir_path)
     end
 
     dir_path = dir_path:gsub("[/\\]+$", "")
+    if not util.directoryExists(dir_path) then return nil end
+
     local fn_lc
     for fn in lfs.dir(dir_path) do
         fn_lc = fn:lower()
@@ -305,7 +307,7 @@ local function query_cover_paths(folder, include_subfolders)
     local db_conn = SQ3.open(DataStorage:getSettingsDir() .. "/PT_bookinfo_cache.sqlite3")
     db_conn:set_busy_timeout(5000)
 
-    if not util.pathExists(folder) then return nil end
+    if not util.directoryExists(folder) then return nil end
 
     local query
     folder = folder:gsub("'", "''")
