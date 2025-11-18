@@ -280,6 +280,7 @@ function CoverBrowser:init()
         BookStatusWidget.getStatusContent = AltBookStatusWidget.getStatusContent
         BookStatusWidget.genBookInfoGroup = AltBookStatusWidget.genBookInfoGroup
         BookStatusWidget.genSummaryGroup = AltBookStatusWidget.genSummaryGroup
+        BookStatusWidget.genStatisticsGroup = AltBookStatusWidget.genStatisticsGroup
     end
 
     local home_dir = G_reader_settings:readSetting("home_dir")

@@ -34,7 +34,9 @@ local AltBookStatusWidget = {}
 function AltBookStatusWidget:getStatusContent(width)
     local title_bar = TitleBar:new {
         width = width,
-        bottom_v_padding = 0,
+        button_padding = 0,
+        title_top_padding = 0,
+        bottom_v_padding = Size.padding.default,
         close_callback = not self.readonly and function() self:onClose() end,
         show_parent = self,
     }
@@ -52,14 +54,14 @@ function AltBookStatusWidget:getStatusContent(width)
 end
 
 function AltBookStatusWidget:genHeader(title)
-    local width, height = Screen:getWidth(), Size.item.height_default
-
     local header_title = TextWidget:new {
         text = title,
-        face = Font:getFace(ptutil.good_sans, ptutil.bookstatus_defaults.header_font_size),
+        face = Font:getFace(ptutil.good_sans, ptutil.bookstatus_defaults.medium_font_size),
         fgcolor = Blitbuffer.COLOR_GRAY_9,
     }
 
+    local width = Screen:getWidth()
+    local height = header_title:getSize().h
     local padding_span = HorizontalSpan:new { width = self.padding }
     local line_width = (width - header_title:getSize().w) / 2 - self.padding * 2
     local line_container = LeftContainer:new {
@@ -72,14 +74,9 @@ function AltBookStatusWidget:genHeader(title)
             }
         }
     }
-    local span_top, span_bottom
-    if Screen:getScreenMode() == "landscape" then
-        span_top = VerticalSpan:new { width = Size.span.horizontal_default }
-        span_bottom = VerticalSpan:new { width = Size.span.horizontal_default }
-    else
-        span_top = VerticalSpan:new { width = Size.item.height_default }
-        span_bottom = VerticalSpan:new { width = Size.span.vertical_large }
-    end
+
+    local span_top = VerticalSpan:new { width = Size.margin.default }
+    local span_bottom = VerticalSpan:new { width = Size.margin.tiny }
 
     return VerticalGroup:new {
         span_top,
@@ -100,157 +97,35 @@ end
 function AltBookStatusWidget:genBookInfoGroup()
     -- override the original fonts with our included fonts
     self.small_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.small_font_size)
-    self.medium_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.medium_font_face)
-    self.large_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.large_font_face)
+    self.medium_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.medium_font_size)
+    self.large_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.large_font_size)
 
     -- padding to match the width used in cover list and grid
     self.padding = Screen:scaleBySize(10)
 
     local screen_width = Screen:getWidth()
-    local split_span_width = math.floor(screen_width * 0.05)
+    local screen_height = Screen:getHeight()
+    local width = screen_width - self.padding
+    local height = screen_height * 0.40
+    local max_img_h = height
+    local max_img_w = height
+    local avail_meta_width = width - (self.padding * 3)
+    local avail_meta_height = height
 
-    local img_width, img_height
-    if Screen:getScreenMode() == "landscape" then
-        img_width = Screen:scaleBySize(132)
-        img_height = Screen:scaleBySize(184)
-    else
-        img_width = Screen:scaleBySize(132 * 1.5)
-        img_height = Screen:scaleBySize(184 * 1.5)
-    end
-
-    local height = img_height
-    local width = screen_width - split_span_width - img_width
-
-    -- Get a chance to have title and authors rendered with alternate
-    -- glyphs for the book language
-    local props = self.ui.doc_props
-    local lang = props.language
-
-    -- author(s) text
-    local authors = ""
-    if props.authors then
-        authors = ptutil.formatAuthors(props.authors, 2)
-    end
-
-    -- series name and position (if available, if requested)
-    local series_mode = BookInfoManager:getSetting("series_mode")
-    local show_series = props.series and props.series_index
-    local series
-    if show_series then
-        series = ptutil.formatSeries(props.series, props.series_index)
-        -- if series comes back as blank, don't include it
-        if series == "" then show_series = false end
-    else
-        series = ""
-    end
-
-    -- combine author and series
-    local author_series_text = ptutil.formatAuthorSeries(authors, series, series_mode, false)
-
-    -- author(s) and series combined box
-    local author_series = TextBoxWidget:new {
-        text = author_series_text,
-        lang = lang,
-        face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.small_serif_size),
-        width = width,
-        alignment = "center",
-        fgcolor = Blitbuffer.COLOR_GRAY_2,
-    }
-
-    -- progress bar
-    local read_percentage = self.ui:getCurrentPage() / self.total_pages
-    local progress_bar = ProgressWidget:new {
-        width = math.floor(width * 0.7),
-        height = Screen:scaleBySize(18),
-        percentage = read_percentage,
-        margin_v = 0,
-        margin_h = 0,
-        bordersize = Screen:scaleBySize(0.5),
-        bordercolor = Blitbuffer.COLOR_BLACK,
-        bgcolor = Blitbuffer.COLOR_GRAY_E,
-        fillcolor = Blitbuffer.COLOR_GRAY_6,
-    }
-
-    -- current chapter title, if available
-    local book_chapter = self.ui.toc:getTocTitleByPage(self.ui:getCurrentPage()) or ""
-    local chapter_title = TextWidget:new {
-        text = book_chapter,
-        lang = lang,
-        face = Font:getFace(ptutil.good_serif_it, ptutil.bookstatus_defaults.small_serif_size),
-        width = width,
-        alignment = "center",
-        fgcolor = Blitbuffer.COLOR_BLACK,
-    }
-
-    -- title box (done last to calculate the max available height)
-    local max_title_height = height - author_series:getSize().h - progress_bar:getSize().h - chapter_title:getSize().h - Size.padding.default
-    local book_title = TextBoxWidget:new {
-        text = props.display_title,
-        lang = lang,
-        width = width,
-        height = max_title_height,
-        height_adjust = true,
-        height_overflow_show_ellipsis = true,
-        face = Font:getFace(ptutil.title_serif, ptutil.bookstatus_defaults.large_serif_size),
-        alignment = "center",
-    }
-
-    -- padding
-    local meta_padding_height = math.max(Size.padding.default, height - book_title:getSize().h - author_series:getSize().h - progress_bar:getSize().h - chapter_title:getSize().h)
-    local meta_padding = VerticalSpan:new { width = meta_padding_height }
-
-    -- horizontal dividing line
-    local book_meta_line = LineWidget:new {
-        background = Blitbuffer.COLOR_LIGHT_GRAY,
-        dimen = Geom:new {
-            w = width * 0.2,
-            h = Size.line.thick,
-        }
-    }
-
-    -- build metadata column (adjacent to cover)
-    local book_meta_info_group = VerticalGroup:new {
-        align = "center",
-    }
-    table.insert(book_meta_info_group, book_title)
-    table.insert(book_meta_info_group, book_meta_line)
-    if book_chapter ~= "" then
-        table.insert(book_meta_info_group,
-            CenterContainer:new {
-                dimen = Geom:new { w = width, h = chapter_title:getSize().h },
-                chapter_title
-            }
-        )
-        table.insert(book_meta_info_group, book_meta_line)
-    end
-    table.insert(book_meta_info_group,
-        CenterContainer:new {
-            dimen = Geom:new { w = width, h = author_series:getSize().h },
-            author_series
-        }
-    )
-    table.insert(book_meta_info_group, meta_padding)
-    table.insert(book_meta_info_group,
-        CenterContainer:new {
-            dimen = Geom:new { w = width, h = progress_bar:getSize().h },
-            progress_bar
-        }
-    )
-
-    -- assemble the final row w/ cover and metadata [X|Y]
+    -- create the full infogroup widget
     local book_info_group = HorizontalGroup:new {
         align = "top",
-        HorizontalSpan:new { width = split_span_width }
     }
-    -- cover column
+
+    -- insert cover column
     local thumbnail = FileManagerBookInfo:getCoverImage(self.ui.document)
     if thumbnail then
         -- Much like BookInfoManager, honor AR here
         local cbb_w, cbb_h = thumbnail:getWidth(), thumbnail:getHeight()
-        if cbb_w > img_width or cbb_h > img_height then
-            local scale_factor = math.min(img_width / cbb_w, img_height / cbb_h)
-            cbb_w = math.min(math.floor(cbb_w * scale_factor) + 1, img_width)
-            cbb_h = math.min(math.floor(cbb_h * scale_factor) + 1, img_height)
+        if cbb_w > max_img_w or cbb_h > max_img_h then
+            local scale_factor = math.min(max_img_w / cbb_w, max_img_h / cbb_h)
+            cbb_w = math.min(math.floor(cbb_w * scale_factor) + 1, max_img_w)
+            cbb_h = math.min(math.floor(cbb_h * scale_factor) + 1, max_img_h)
             thumbnail = RenderImage:scaleBlitBuffer(thumbnail, cbb_w, cbb_h, true)
         end
         local border_total = Size.border.thin * 2
@@ -277,25 +152,227 @@ function AltBookStatusWidget:genBookInfoGroup()
                 image,
             }
         })
+        avail_meta_width = avail_meta_width - (cbb_w + border_total)
+        avail_meta_height = (cbb_h + border_total)
     end
-    -- metadata column
-    table.insert(book_info_group, CenterContainer:new {
-        dimen = Geom:new { w = width, h = height },
-        book_meta_info_group,
+
+    -- Get a chance to have title and authors rendered with alternate
+    -- glyphs for the book language
+    local props = self.ui.doc_props
+    local lang = props.language
+
+    -- progress info
+    local current_page = self.ui:getCurrentPage() or 1
+    local book_pages = self.total_pages or 1
+    local chapter_pages = 1
+    local current_chapter_page = 1
+    if self.ui.toc then
+        chapter_pages = self.ui.toc:getChapterPageCount(current_page) or 1
+        current_chapter_page = (self.ui.toc:getChapterPagesDone(current_page) + 1) or 1
+    end
+
+    -- author(s) text
+    local authors = ""
+    if props.authors then
+        authors = ptutil.formatAuthors(props.authors, 2)
+    end
+
+    -- series name and position (if available, if requested)
+    local series_mode = BookInfoManager:getSetting("series_mode")
+    local show_series = props.series and props.series_index
+    local series
+    if show_series then
+        series = ptutil.formatSeries(props.series, props.series_index)
+        -- if series comes back as blank, don't include it
+        if series == "" then show_series = false end
+    else
+        series = ""
+    end
+
+    -- combine author and series
+    local author_series_text = ptutil.formatAuthorSeries(authors, series, series_mode, false)
+
+    -- author(s) and series combined box
+    local author_series = TextBoxWidget:new {
+        text = author_series_text,
+        lang = lang,
+        face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.metainfo_font_size),
+        width = avail_meta_width,
+        alignment = "center",
+        fgcolor = Blitbuffer.COLOR_GRAY_2,
+    }
+
+    -- book progress bar
+    local book_percentage = current_page / book_pages
+    local book_progress = ProgressWidget:new {
+        width = math.floor(avail_meta_width * 0.7),
+        height = Screen:scaleBySize(12),
+        percentage = book_percentage,
+        margin_v = 0,
+        margin_h = 0,
+        bordersize = Screen:scaleBySize(0.5),
+        bordercolor = Blitbuffer.COLOR_BLACK,
+        bgcolor = Blitbuffer.COLOR_GRAY_E,
+        fillcolor = Blitbuffer.COLOR_GRAY_6,
+    }
+
+    -- current chapter title (if available)
+    local chapter_text = self.ui.toc:getTocTitleByPage(current_page) or ""
+    local chapter_title = TextBoxWidget:new {
+        text = chapter_text,
+        lang = lang,
+        face = Font:getFace(ptutil.good_serif_it, ptutil.bookstatus_defaults.metainfo_font_size),
+        width = avail_meta_width,
+        alignment = "center",
+        fgcolor = Blitbuffer.COLOR_BLACK,
+    }
+
+    -- chapter progress bar
+    local chapter_percentage = current_chapter_page / chapter_pages
+    local chapter_progress = ProgressWidget:new {
+        width = math.floor(avail_meta_width * 0.7),
+        height = Screen:scaleBySize(12),
+        percentage = chapter_percentage,
+        margin_v = 0,
+        margin_h = 0,
+        bordersize = Screen:scaleBySize(0.5),
+        bordercolor = Blitbuffer.COLOR_BLACK,
+        bgcolor = Blitbuffer.COLOR_GRAY_E,
+        fillcolor = Blitbuffer.COLOR_GRAY_6,
+    }
+
+    -- title box (done last to calculate the max available height)
+    local max_title_height = height - author_series:getSize().h - book_progress:getSize().h - chapter_title:getSize().h - Size.padding.default
+    local book_title = TextBoxWidget:new {
+        text = props.display_title,
+        lang = lang,
+        width = avail_meta_width,
+        height = max_title_height,
+        height_adjust = true,
+        height_overflow_show_ellipsis = true,
+        face = Font:getFace(ptutil.title_serif, ptutil.bookstatus_defaults.title_font_size),
+        alignment = "center",
+    }
+
+    -- padding
+    local meta_padding_height = math.max(Size.padding.default,
+                                        avail_meta_height -
+                                        book_title:getSize().h -
+                                        author_series:getSize().h -
+                                        book_progress:getSize().h -
+                                        chapter_progress:getSize().h -
+                                        chapter_title:getSize().h -
+                                        (Size.border.thin * 2) -
+                                        (Size.padding.default * 2)
+                                        ) / 2
+    local meta_padding = VerticalSpan:new { width = meta_padding_height }
+
+    -- build metadata column (adjacent to cover)
+    local book_meta = VerticalGroup:new { align = "center" }
+    table.insert(book_meta, book_title)
+    table.insert(book_meta, book_progress)
+    table.insert(book_meta, meta_padding)
+    if chapter_text ~= "" then
+        table.insert(book_meta, chapter_title)
+        table.insert(book_meta, chapter_progress)
+    end
+    table.insert(book_meta, meta_padding)
+    table.insert(book_meta, author_series)
+
+    -- insert padding column
+    table.insert(book_info_group, HorizontalSpan:new { width = Size.margin.default })
+
+    -- insert metadata column
+    table.insert(book_info_group, FrameContainer:new {
+        dimen = Geom:new { w = avail_meta_width, h = avail_meta_height },
+        border = Size.border.thin,
+        radius = Size.radius.window,
+        margin = 0,
+        padding = Size.padding.default,
+        color = Blitbuffer.COLOR_LIGHT_GRAY,
+        book_meta,
     })
 
     return CenterContainer:new {
-        dimen = Geom:new { w = screen_width, h = img_height },
+        dimen = Geom:new { w = screen_width, h = height },
         book_info_group,
     }
 end
 
+function AltBookStatusWidget:genStatisticsGroup(width)
+    local screen_height = Screen:getHeight()
+    local height = screen_height * 0.075
+    local statistics_container = CenterContainer:new{
+        dimen = Geom:new{ w = width, h = height },
+    }
+
+    local statistics_group = VerticalGroup:new{ align = "left" }
+
+    local tile_width = width * (1/3)
+    local tile_height = height * (1/2)
+
+    local titles_group = HorizontalGroup:new{
+        align = "center",
+        CenterContainer:new{
+            dimen = Geom:new{ w = tile_width, h = tile_height },
+            TextWidget:new{
+                text = _("Days"),
+                face = self.small_font_face,
+            },
+        },
+        CenterContainer:new{
+            dimen = Geom:new{ w = tile_width, h = tile_height },
+            TextWidget:new{
+                text = _("Time"),
+                face = self.small_font_face,
+            },
+        },
+        CenterContainer:new{
+            dimen = Geom:new{ w = tile_width, h = tile_height },
+            TextWidget:new{
+                text = _("Read pages"),
+                face = self.small_font_face,
+            }
+        }
+    }
+
+    local data_group = HorizontalGroup:new{
+        align = "center",
+        CenterContainer:new{
+            dimen = Geom:new{ w = tile_width, h = tile_height },
+            TextWidget:new{
+                text = self:getStatDays(),
+                face = self.medium_font_face,
+            },
+        },
+        CenterContainer:new{
+            dimen = Geom:new{ w = tile_width, h = tile_height },
+            TextWidget:new{
+                text = self:getStatHours(),
+                face = self.medium_font_face,
+            },
+        },
+        CenterContainer:new{
+            dimen = Geom:new{ w = tile_width, h = tile_height },
+            TextWidget:new{
+                text = self:getStatReadPages(),
+                face = self.medium_font_face,
+            }
+        }
+    }
+
+    table.insert(statistics_group, titles_group)
+    table.insert(statistics_group, data_group)
+
+    table.insert(statistics_container, statistics_group)
+    return statistics_container
+end
+
 function AltBookStatusWidget:genSummaryGroup(width)
-    local height
+    local screen_height = Screen:getHeight()
+    local height = screen_height * 0.35
     if Screen:getScreenMode() == "landscape" then
-        height = Screen:scaleBySize(165)
-    else
-        height = Screen:scaleBySize(265)
+        height = height * 0.85
     end
 
     local html_contents = ""
@@ -330,7 +407,7 @@ function AltBookStatusWidget:genSummaryGroup(width)
                 margin-top: 0.5em;
             }
         ]],
-        default_font_size = Screen:scaleBySize(18),
+        default_font_size = ptutil.bookstatus_defaults.description_font_size,
         html_body = html_contents,
         text_scroll_span = Screen:scaleBySize(20),
         scroll_bar_width = Screen:scaleBySize(10),
@@ -339,11 +416,17 @@ function AltBookStatusWidget:genSummaryGroup(width)
     table.insert(self.layout, { self.input_note })
 
     return VerticalGroup:new {
-        VerticalSpan:new { width = Size.span.vertical_large },
         CenterContainer:new {
             dimen = Geom:new { w = width, h = height },
             self.input_note
-        }
+        },
+        -- LineWidget:new {
+        --     background = Blitbuffer.COLOR_LIGHT_GRAY,
+        --     dimen = Geom:new {
+        --         w = width,
+        --         h = Size.line.thick,
+        --     }
+        -- },
     }
 end
 
