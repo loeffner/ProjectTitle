@@ -162,7 +162,6 @@ local CoverBrowser = WidgetContainer:extend {
     },
 }
 
-
 function CoverBrowser:onDispatcherRegisterActions()
     Dispatcher:registerAction("dec_items_pp", {
         category = "none",
