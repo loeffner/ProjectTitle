@@ -32,18 +32,11 @@ local ptdbg = require("ptdbg")
 local AltBookStatusWidget = {}
 
 function AltBookStatusWidget:getStatusContent(width)
-    local title_bar = TitleBar:new {
-        width = width,
-        button_padding = 0,
-        title_top_padding = 0,
-        bottom_v_padding = Size.padding.default,
-        close_callback = not self.readonly and function() self:onClose() end,
-        show_parent = self,
-    }
+    self.padding = Screen:scaleBySize(22)
     local read_percentage = self.ui:getCurrentPage() / self.total_pages
     local content = VerticalGroup:new {
         align = "left",
-        title_bar,
+        VerticalSpan:new { width = self.padding},
         self:genBookInfoGroup(),
         self:genHeader(_("Progress") .. ": " .. string.format("%1.f%%", read_percentage * 100)),
         self:genStatisticsGroup(width),
@@ -57,7 +50,7 @@ function AltBookStatusWidget:genHeader(title)
     local header_title = TextWidget:new {
         text = title,
         face = Font:getFace(ptutil.good_sans, ptutil.bookstatus_defaults.medium_font_size),
-        fgcolor = Blitbuffer.COLOR_GRAY_9,
+        fgcolor = Blitbuffer.COLOR_BLACK,
     }
 
     local width = Screen:getWidth()
@@ -67,10 +60,10 @@ function AltBookStatusWidget:genHeader(title)
     local line_container = LeftContainer:new {
         dimen = Geom:new { w = line_width, h = height },
         LineWidget:new {
-            background = Blitbuffer.COLOR_LIGHT_GRAY,
+            background = Blitbuffer.COLOR_GRAY_3,
             dimen = Geom:new {
                 w = line_width,
-                h = Size.line.thick,
+                h = Size.border.thin,
             }
         }
     }
@@ -100,12 +93,9 @@ function AltBookStatusWidget:genBookInfoGroup()
     self.medium_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.medium_font_size)
     self.large_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.large_font_size)
 
-    -- padding to match the width used in cover list and grid
-    self.padding = Screen:scaleBySize(10)
-
     local screen_width = Screen:getWidth()
     local screen_height = Screen:getHeight()
-    local width = screen_width - self.padding
+    local width = screen_width
     local height = screen_height * 0.40
     local max_img_h = height
     local max_img_w = height
@@ -147,7 +137,6 @@ function AltBookStatusWidget:genBookInfoGroup()
                 padding = 0,
                 radius = Size.radius.default,
                 bordersize = Size.border.thin,
-                dim = self.file_deleted,
                 color = Blitbuffer.COLOR_GRAY_3,
                 image,
             }
@@ -155,6 +144,9 @@ function AltBookStatusWidget:genBookInfoGroup()
         avail_meta_width = avail_meta_width - (cbb_w + border_total)
         avail_meta_height = (cbb_h + border_total)
     end
+
+    local text_width = math.floor(avail_meta_width * 0.85)
+    local bar_width = math.floor(avail_meta_width * 0.75)
 
     -- Get a chance to have title and authors rendered with alternate
     -- glyphs for the book language
@@ -197,16 +189,16 @@ function AltBookStatusWidget:genBookInfoGroup()
         text = author_series_text,
         lang = lang,
         face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.metainfo_font_size),
-        width = avail_meta_width,
+        width = text_width,
         alignment = "center",
-        fgcolor = Blitbuffer.COLOR_GRAY_2,
+        fgcolor = Blitbuffer.COLOR_BLACK,
     }
 
     -- book progress bar
     local book_percentage = current_page / book_pages
     local book_progress = ProgressWidget:new {
-        width = math.floor(avail_meta_width * 0.7),
-        height = Screen:scaleBySize(12),
+        width = bar_width,
+        height = Screen:scaleBySize(16),
         percentage = book_percentage,
         margin_v = 0,
         margin_h = 0,
@@ -222,7 +214,7 @@ function AltBookStatusWidget:genBookInfoGroup()
         text = chapter_text,
         lang = lang,
         face = Font:getFace(ptutil.good_serif_it, ptutil.bookstatus_defaults.metainfo_font_size),
-        width = avail_meta_width,
+        width = text_width,
         alignment = "center",
         fgcolor = Blitbuffer.COLOR_BLACK,
     }
@@ -230,7 +222,7 @@ function AltBookStatusWidget:genBookInfoGroup()
     -- chapter progress bar
     local chapter_percentage = current_chapter_page / chapter_pages
     local chapter_progress = ProgressWidget:new {
-        width = math.floor(avail_meta_width * 0.7),
+        width = bar_width,
         height = Screen:scaleBySize(12),
         percentage = chapter_percentage,
         margin_v = 0,
@@ -246,50 +238,60 @@ function AltBookStatusWidget:genBookInfoGroup()
     local book_title = TextBoxWidget:new {
         text = props.display_title,
         lang = lang,
-        width = avail_meta_width,
+        width = text_width,
         height = max_title_height,
         height_adjust = true,
         height_overflow_show_ellipsis = true,
         face = Font:getFace(ptutil.title_serif, ptutil.bookstatus_defaults.title_font_size),
         alignment = "center",
+        -- fgcolor = Blitbuffer.COLOR_WHITE,
+        -- bgcolor = Blitbuffer.COLOR_BLACK,
     }
 
     -- padding
+    local meta_paddingsize = 0
+    local meta_marginsize = 0
+    local meta_bordersize = Size.border.thin
     local meta_padding_height = math.max(Size.padding.default,
-                                        avail_meta_height -
-                                        book_title:getSize().h -
-                                        author_series:getSize().h -
-                                        book_progress:getSize().h -
-                                        chapter_progress:getSize().h -
-                                        chapter_title:getSize().h -
-                                        (Size.border.thin * 2) -
-                                        (Size.padding.default * 2)
-                                        ) / 2
-    local meta_padding = VerticalSpan:new { width = meta_padding_height }
+                                        avail_meta_height - book_title:getSize().h -
+                                        author_series:getSize().h - book_progress:getSize().h -
+                                        chapter_progress:getSize().h - chapter_title:getSize().h -
+                                        (meta_bordersize * 2) - (meta_paddingsize * 2) - (meta_marginsize * 2)
+                                    )
+
+    local dividing_line = LineWidget:new {
+            background = Blitbuffer.COLOR_GRAY_3,
+            dimen = Geom:new {
+                w = avail_meta_width,
+                h = Size.border.thin,
+            }
+        }
 
     -- build metadata column (adjacent to cover)
     local book_meta = VerticalGroup:new { align = "center" }
+    table.insert(book_meta, VerticalSpan:new { width = meta_padding_height * 0.35 })
     table.insert(book_meta, book_title)
     table.insert(book_meta, book_progress)
-    table.insert(book_meta, meta_padding)
+    table.insert(book_meta, VerticalSpan:new { width = meta_padding_height * 0.2 })
     if chapter_text ~= "" then
         table.insert(book_meta, chapter_title)
         table.insert(book_meta, chapter_progress)
     end
-    table.insert(book_meta, meta_padding)
+    table.insert(book_meta, VerticalSpan:new { width = meta_padding_height * 0.45 })
+    table.insert(book_meta, dividing_line)
     table.insert(book_meta, author_series)
 
     -- insert padding column
-    table.insert(book_info_group, HorizontalSpan:new { width = Size.margin.default })
+    table.insert(book_info_group, HorizontalSpan:new { width = self.padding })
 
     -- insert metadata column
     table.insert(book_info_group, FrameContainer:new {
         dimen = Geom:new { w = avail_meta_width, h = avail_meta_height },
-        border = Size.border.thin,
-        radius = Size.radius.window,
-        margin = 0,
-        padding = Size.padding.default,
-        color = Blitbuffer.COLOR_LIGHT_GRAY,
+        margin = meta_marginsize,
+        padding = meta_paddingsize,
+        radius = Size.radius.default,
+        bordersize = meta_bordersize,
+        color = Blitbuffer.COLOR_GRAY_3,
         book_meta,
     })
 
@@ -421,7 +423,7 @@ function AltBookStatusWidget:genSummaryGroup(width)
             self.input_note
         },
         -- LineWidget:new {
-        --     background = Blitbuffer.COLOR_LIGHT_GRAY,
+        --     background = Blitbuffer.COLOR_BLACK,
         --     dimen = Geom:new {
         --         w = width,
         --         h = Size.line.thick,
