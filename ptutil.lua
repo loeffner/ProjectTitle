@@ -85,6 +85,10 @@ ptutil.grid_defaults = {
     min_rows = 2,
     default_cols = 3,
     default_rows = 3,
+
+    -- Cover Art display
+    stretch_covers = false,
+    stretch_ratio = 1,
 }
 
 ptutil.footer_defaults = {

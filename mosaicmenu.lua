@@ -762,15 +762,27 @@ function MosaicMenuItem:update()
                 local border_total = Size.border.thin * 2
                 local _, _, scale_factor = BookInfoManager.getCachedCoverSize(bookinfo.cover_w, bookinfo.cover_h,
                     max_img_w - border_total, max_img_h - border_total)
+                local img_width
+                local img_height
+                if ptutil.grid_defaults.stretch_covers then
+                    scale_factor = nil
+                    img_width = (max_img_w * ptutil.grid_defaults.stretch_ratio) - border_total
+                    img_height = max_img_h - border_total
+                else
+                    img_width = math.floor(bookinfo.cover_w * scale_factor)
+                    img_height = math.floor(bookinfo.cover_h * scale_factor)
+                end
                 local image = ImageWidget:new {
                     image = bookinfo.cover_bb,
                     scale_factor = scale_factor,
+                    width = img_width,
+                    height = img_height,
                 }
                 widget = CenterContainer:new {
                     dimen = dimen,
                     FrameContainer:new {
-                        width = math.floor((bookinfo.cover_w * scale_factor) + border_total),
-                        height = math.floor((bookinfo.cover_h * scale_factor) + border_total),
+                        width = img_width + border_total,
+                        height = img_height + border_total,
                         margin = 0,
                         padding = 0,
                         radius = frame_radius,
