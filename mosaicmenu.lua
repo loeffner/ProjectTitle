@@ -946,8 +946,8 @@ function MosaicMenuItem:paintTo(bb, x, y)
                 margin = 0,
                 series_widget_text,
             }
-            local pos_x = x + self.width / 2 + target.width / 2 - series_widget:getSize().w * xmult
-            local pos_y = y + series_widget:getSize().w * 0.33
+            local pos_x = x + (self.width / 2) + (target.width / 2) - (series_widget:getSize().w * xmult)
+            local pos_y = y + (self.height - target.height) / 2 + (series_widget:getSize().h * (1 - xmult))
             series_widget:paintTo(bb, pos_x, pos_y)
         end
 
