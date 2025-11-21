@@ -457,11 +457,11 @@ function ListMenuItem:update()
 
                 local fn_pages = tonumber(est_page_count)
                 local max_progress_size = ptutil.list_defaults.progress_bar_max_size
-                local pixels_per_page = ptutil.list_defaults.progress_bar_pixels_per_page
+                local pages_per_pixel = ptutil.list_defaults.progress_bar_pages_per_pixel
                 local min_progress_size = ptutil.list_defaults.progress_bar_min_size
                 local progress_bar_height = wright_font_size -- progress bar same height as progress text
                 local total_pixels = math.max(
-                    (math.min(math.floor((fn_pages / pixels_per_page) + 0.5), max_progress_size)), min_progress_size)
+                    (math.min(math.floor((fn_pages / pages_per_pixel) + 0.5), max_progress_size)), min_progress_size)
                 local progress_bar = ProgressWidget:new {
                     width = Screen:scaleBySize(total_pixels),
                     height = Screen:scaleBySize(progress_bar_height),
@@ -479,7 +479,7 @@ function ListMenuItem:update()
                 local bar_and_icons
                 local bar_icon_size = Screen:scaleBySize(progress_bar_height * 1.5333)  -- size for icons used with progress bar
 
-                if fn_pages > (max_progress_size * pixels_per_page) then
+                if fn_pages > (max_progress_size * pages_per_pixel) then
                     progress_width = progress_width + math.floor(bar_icon_size / 2) -- add extra width for max size indicator
                     progress_dimen = Geom:new {
                         x = 0, y = 0,
@@ -507,7 +507,7 @@ function ListMenuItem:update()
                 table.insert(progress_block, bar_and_icons)
 
                 -- books with fn_page_count larger than the max get an indicator at the left edge of the progress bar
-                if fn_pages > (max_progress_size * pixels_per_page) then
+                if fn_pages > (max_progress_size * pages_per_pixel) then
                     local max_widget = ImageWidget:new({
                         file = plugin_dir .. "/resources/large_book.svg",
                         width = bar_icon_size,

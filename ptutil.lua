@@ -31,7 +31,7 @@ local ptutil = {}
 ptutil.list_defaults = {
     -- Progress bar settings
     progress_bar_max_size = 235,      -- maximum progress bar width in pixels
-    progress_bar_pixels_per_page = 3, -- pixels per page for progress bar calculation
+    progress_bar_pages_per_pixel = 3, -- pixels per page for progress bar calculation
     progress_bar_min_size = 25,       -- minimum progress bar width in pixels
 
     -- Author display settings
@@ -68,7 +68,7 @@ ptutil.list_defaults = {
 ptutil.grid_defaults = {
     -- Progress bar settings
     progress_bar_max_size = ptutil.list_defaults.progress_bar_max_size,               -- maximum progress bar width in pixels
-    progress_bar_pixels_per_page = ptutil.list_defaults.progress_bar_pixels_per_page, -- pixels per page for progress bar calculation
+    progress_bar_pages_per_pixel = ptutil.list_defaults.progress_bar_pages_per_pixel, -- pixels per page for progress bar calculation
     progress_bar_min_size = 40,                                                       -- minimum progress bar width in pixels
 
     -- Font size adjustment step (used when fitting text into available space)
@@ -538,7 +538,7 @@ function ptutil.showProgressBar(pages)
     local show_progress_bar = false
     local est_page_count = pages or nil
     if BookInfoManager:getSetting("force_max_progressbars") and not BookInfoManager:getSetting("show_pages_read_as_progress") then
-        est_page_count = "700"
+        est_page_count = ptutil.list_defaults.progress_bar_pages_per_pixel * ptutil.list_defaults.progress_bar_max_size
     end
     show_progress_bar = est_page_count ~= nil and
         BookInfoManager:getSetting("hide_file_info") and                    -- "show file info"
