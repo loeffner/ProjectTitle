@@ -97,6 +97,7 @@ ptutil.footer_defaults = {
 }
 
 ptutil.bookstatus_defaults = {
+    header_font_size = 20,
     metainfo_font_size = 18,
     title_font_size = 24,
     description_font_size = Screen:scaleBySize(18),

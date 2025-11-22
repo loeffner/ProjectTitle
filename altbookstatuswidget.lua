@@ -48,7 +48,7 @@ end
 function AltBookStatusWidget:genHeader(title)
     local header_title = TextWidget:new {
         text = title,
-        face = Font:getFace(ptutil.good_sans, ptutil.bookstatus_defaults.medium_font_size),
+        face = Font:getFace(ptutil.good_sans, ptutil.bookstatus_defaults.header_font_size),
         fgcolor = Blitbuffer.COLOR_BLACK,
     }
 
