@@ -87,11 +87,6 @@ function AltBookStatusWidget:genHeader(title)
 end
 
 function AltBookStatusWidget:genBookInfoGroup()
-    -- override the original fonts with our included fonts
-    self.small_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.small_font_size)
-    self.medium_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.medium_font_size)
-    self.large_font_face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.large_font_size)
-
     local screen_width = Screen:getWidth()
     local screen_height = Screen:getHeight()
     local width = screen_width
@@ -308,65 +303,62 @@ function AltBookStatusWidget:genStatisticsGroup(width)
     local statistics_container = CenterContainer:new{
         dimen = Geom:new{ w = width, h = height },
     }
-
     local statistics_group = VerticalGroup:new{ align = "left" }
-
-    local tile_width = width * (1/3)
-    local tile_height = height * (1/2)
-
+    local tile_width = width * 0.33
+    local tile_height = height * 0.5
     local titles_group = HorizontalGroup:new{
         align = "center",
         CenterContainer:new{
             dimen = Geom:new{ w = tile_width, h = tile_height },
             TextWidget:new{
                 text = _("Days"),
-                face = self.small_font_face,
+                face = Font:getFace(ptutil.good_serif_bold, ptutil.bookstatus_defaults.metainfo_font_size),
             },
         },
         CenterContainer:new{
             dimen = Geom:new{ w = tile_width, h = tile_height },
             TextWidget:new{
                 text = _("Time"),
-                face = self.small_font_face,
+                face = Font:getFace(ptutil.good_serif_bold, ptutil.bookstatus_defaults.metainfo_font_size),
             },
         },
         CenterContainer:new{
             dimen = Geom:new{ w = tile_width, h = tile_height },
             TextWidget:new{
                 text = _("Read pages"),
-                face = self.small_font_face,
+                face = Font:getFace(ptutil.good_serif_bold, ptutil.bookstatus_defaults.metainfo_font_size),
             }
         }
     }
-
     local data_group = HorizontalGroup:new{
         align = "center",
         CenterContainer:new{
             dimen = Geom:new{ w = tile_width, h = tile_height },
             TextWidget:new{
                 text = self:getStatDays(),
-                face = self.medium_font_face,
+                face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.metainfo_font_size),
+                fgcolor = Blitbuffer.COLOR_GRAY_2,
             },
         },
         CenterContainer:new{
             dimen = Geom:new{ w = tile_width, h = tile_height },
             TextWidget:new{
                 text = self:getStatHours(),
-                face = self.medium_font_face,
+                face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.metainfo_font_size),
+                fgcolor = Blitbuffer.COLOR_GRAY_2,
             },
         },
         CenterContainer:new{
             dimen = Geom:new{ w = tile_width, h = tile_height },
             TextWidget:new{
                 text = self:getStatReadPages(),
-                face = self.medium_font_face,
+                face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.metainfo_font_size),
+                fgcolor = Blitbuffer.COLOR_GRAY_2,
             }
         }
     }
-
     table.insert(statistics_group, titles_group)
     table.insert(statistics_group, data_group)
-
     table.insert(statistics_container, statistics_group)
     return statistics_container
 end

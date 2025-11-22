@@ -100,9 +100,6 @@ ptutil.bookstatus_defaults = {
     metainfo_font_size = 18,
     title_font_size = 24,
     description_font_size = Screen:scaleBySize(18),
-    small_font_size = 18,
-    medium_font_size = 22,
-    large_font_size = 26,
 }
 
 ptutil.good_serif = "source/SourceSerif4-Regular.ttf"
