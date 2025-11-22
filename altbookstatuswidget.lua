@@ -17,7 +17,6 @@ local Size = require("ui/size")
 local ScrollHtmlWidget = require("ui/widget/scrollhtmlwidget")
 local TextBoxWidget = require("ui/widget/textboxwidget")
 local TextWidget = require("ui/widget/textwidget")
-local TitleBar = require("ui/widget/titlebar")
 local VerticalGroup = require("ui/widget/verticalgroup")
 local VerticalSpan = require("ui/widget/verticalspan")
 local logger = require("logger")
@@ -190,8 +189,10 @@ function AltBookStatusWidget:genBookInfoGroup()
         lang = lang,
         face = Font:getFace(ptutil.good_serif, ptutil.bookstatus_defaults.metainfo_font_size),
         width = text_width,
+        height_adjust = true,
+        height_overflow_show_ellipsis = true,
         alignment = "center",
-        fgcolor = Blitbuffer.COLOR_BLACK,
+        fgcolor = Blitbuffer.COLOR_GRAY_2,
     }
 
     -- book progress bar
@@ -215,6 +216,8 @@ function AltBookStatusWidget:genBookInfoGroup()
         lang = lang,
         face = Font:getFace(ptutil.good_serif_it, ptutil.bookstatus_defaults.metainfo_font_size),
         width = text_width,
+        height_adjust = true,
+        height_overflow_show_ellipsis = true,
         alignment = "center",
         fgcolor = Blitbuffer.COLOR_BLACK,
     }
@@ -244,8 +247,6 @@ function AltBookStatusWidget:genBookInfoGroup()
         height_overflow_show_ellipsis = true,
         face = Font:getFace(ptutil.title_serif, ptutil.bookstatus_defaults.title_font_size),
         alignment = "center",
-        -- fgcolor = Blitbuffer.COLOR_WHITE,
-        -- bgcolor = Blitbuffer.COLOR_BLACK,
     }
 
     -- padding
